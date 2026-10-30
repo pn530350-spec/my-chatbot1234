@@ -1,0 +1,545 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prince AI Chatbot</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b1020;
+      color: #eef2ff;
+      min-height: 100vh;
+    }
+    .app {
+      display: flex;
+      min-height: 100vh;
+      max-width: 1500px;
+      margin: auto;
+    }
+    aside {
+      width: 290px;
+      background: #11182b;
+      border-right: 1px solid #27324a;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .brand { font-size: 23px; font-weight: bold; }
+    .brand span { color: #8b9cff; }
+    .subtitle { color: #9aa8c7; font-size: 13px; margin-top: 5px; }
+    button, select, input, textarea { font: inherit; }
+    button {
+      cursor: pointer;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 15px;
+      color: white;
+      background: #5969ed;
+      font-weight: 600;
+    }
+    button:hover { filter: brightness(1.12); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .new-chat { width: 100%; }
+    .settings {
+      border: 1px solid #2a3652;
+      background: #18223a;
+      border-radius: 13px;
+      padding: 14px;
+    }
+    .settings h3 { margin: 0 0 13px; font-size: 15px; }
+    label {
+      display: block;
+      color: #b7c3df;
+      font-size: 12px;
+      margin: 12px 0 6px;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #354361;
+      background: #0d1528;
+      color: #eef2ff;
+      border-radius: 9px;
+      padding: 11px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #8290ff;
+    }
+    .small-btn {
+      width: 100%;
+      margin-top: 9px;
+      padding: 9px;
+      font-size: 13px;
+    }
+    .secondary { background: #293651; }
+    .warning {
+      font-size: 11px;
+      line-height: 1.5;
+      color: #ffd48b;
+      margin-top: 10px;
+    }
+    .history-title {
+      color: #9aa8c7;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+    #history {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      overflow-y: auto;
+    }
+    .history-item {
+      background: #1a2540;
+      color: #cbd5ee;
+      text-align: left;
+      font-weight: normal;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100vh;
+    }
+    header {
+      padding: 18px 25px;
+      border-bottom: 1px solid #27324a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    header h2 { margin: 0; font-size: 18px; }
+    #status { color: #9aa8c7; font-size: 12px; }
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .welcome {
+      margin: auto;
+      text-align: center;
+      max-width: 550px;
+      color: #aebbd7;
+    }
+    .welcome h1 { color: white; font-size: 34px; }
+    .welcome p { line-height: 1.7; }
+    .message {
+      max-width: 850px;
+      width: fit-content;
+      min-width: 90px;
+      padding: 14px 17px;
+      border-radius: 15px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .user {
+      align-self: flex-end;
+      background: #5364e8;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .assistant {
+      align-self: flex-start;
+      background: #1b2741;
+      border: 1px solid #2b3958;
+      color: #e6ecff;
+      border-bottom-left-radius: 4px;
+    }
+    .message-name {
+      font-size: 11px;
+      color: #aab8ff;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .composer-wrap {
+      padding: 16px 20px 20px;
+      border-top: 1px solid #27324a;
+    }
+    .composer {
+      max-width: 950px;
+      margin: auto;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: #151f35;
+      padding: 10px;
+      border: 1px solid #34415e;
+      border-radius: 15px;
+    }
+    #prompt {
+      resize: none;
+      border: 0;
+      background: transparent;
+      min-height: 45px;
+      max-height: 150px;
+      flex: 1;
+    }
+    #sendBtn { min-width: 85px; }
+    .hint {
+      text-align: center;
+      color: #71809f;
+      font-size: 11px;
+      margin-top: 9px;
+    }
+    .typing { color: #9eafff; font-size: 13px; }
+    @media(max-width: 760px) {
+      .app { flex-direction: column; }
+      aside { width: 100%; border-right: 0; border-bottom: 1px solid #27324a; }
+      #history { max-height: 100px; }
+      main { height: 75vh; min-height: 550px; }
+      header { padding: 14px; }
+      #chat { padding: 18px 12px; }
+      .composer-wrap { padding: 12px; }
+      .welcome h1 { font-size: 27px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div>
+      <div class="brand">✦ Prince <span>AI</span></div>
+      <div class="subtitle">Your personal AI assistant · Class 9th</div>
+    </div>
+
+    <button class="new-chat" id="newChatBtn">＋ New Chat</button>
+
+    <section class="settings">
+      <h3>⚙ AI Settings</h3>
+
+      <label for="apiKey">Groq API Key</label>
+      <input id="apiKey" type="password" placeholder="gsk_..." autocomplete="off">
+      <button class="small-btn" id="showKeyBtn" type="button">Show / Hide Key</button>
+
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="saveKey" type="checkbox" style="width:auto">
+        Save key on this device
+      </label>
+      <button class="small-btn" id="saveSettingsBtn">Save Settings</button>
+
+      <label for="model">Choose AI Model</label>
+      <select id="model">
+        <optgroup label="GPT Models on Groq">
+          <option value="openai/gpt-oss-20b">GPT-OSS 20B</option>
+          <option value="openai/gpt-oss-120b">GPT-OSS 120B</option>
+        </optgroup>
+        <optgroup label="Llama Models on Groq">
+          <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+          <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
+        </optgroup>
+      </select>
+
+      <div class="warning">
+        ⚠ API key browser में इस्तेमाल होगी। इसे सार्वजनिक वेबसाइट पर डालने से दूसरे लोग इसका दुरुपयोग कर सकते हैं। सुरक्षित सार्वजनिक वेबसाइट के लिए backend इस्तेमाल करें।
+      </div>
+    </section>
+
+    <div class="history-title">RECENT CHATS</div>
+    <div id="history"></div>
+    <button class="small-btn secondary" id="clearHistoryBtn">Clear Chat History</button>
+  </aside>
+
+  <main>
+    <header>
+      <h2>Prince AI Chat</h2>
+      <div id="status">Ready</div>
+    </header>
+
+    <section id="chat">
+      <div class="welcome" id="welcome">
+        <h1>👋 Hello, Prince!</h1>
+        <p>Welcome to your AI chatbot. Ask me anything about studies, coding, science, cricket, or general knowledge.</p>
+        <p>Enter your Groq API key and choose GPT-OSS or Llama to get started.</p>
+      </div>
+    </section>
+
+    <div class="composer-wrap">
+      <div class="composer">
+        <textarea id="prompt" rows="1" placeholder="Message Prince AI..." aria-label="Your message"></textarea>
+        <button id="sendBtn">Send ➤</button>
+      </div>
+      <div class="hint">Enter to send · Shift + Enter for a new line</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+  const apiKeyInput = document.getElementById("apiKey");
+  const saveKeyCheckbox = document.getElementById("saveKey");
+  const modelSelect = document.getElementById("model");
+  const chat = document.getElementById("chat");
+  const promptInput = document.getElementById("prompt");
+  const sendBtn = document.getElementById("sendBtn");
+  const statusText = document.getElementById("status");
+  const historyBox = document.getElementById("history");
+
+  let messages = [];
+  let chatHistory = [];
+  let activeChatId = null;
+  let busy = false;
+
+  // Load saved settings and chat history
+  try {
+    const savedKey = localStorage.getItem("prince_groq_key");
+    if (savedKey) {
+      apiKeyInput.value = savedKey;
+      saveKeyCheckbox.checked = true;
+    }
+    const savedModel = localStorage.getItem("prince_model");
+    if (savedModel) modelSelect.value = savedModel;
+
+    chatHistory = JSON.parse(localStorage.getItem("prince_chats") || "[]");
+    if (!Array.isArray(chatHistory)) chatHistory = [];
+  } catch (error) {
+    console.warn("Could not load saved settings", error);
+  }
+
+  function saveHistory() {
+    try {
+      localStorage.setItem("prince_chats", JSON.stringify(chatHistory));
+    } catch (error) {
+      statusText.textContent = "Could not save history";
+    }
+  }
+
+  function renderHistory() {
+    historyBox.innerHTML = "";
+    chatHistory.slice(0, 15).forEach(item => {
+      const button = document.createElement("button");
+      button.className = "history-item";
+      button.textContent = item.title || "New Chat";
+      button.title = item.title || "New Chat";
+      button.addEventListener("click", () => loadChat(item.id));
+      historyBox.appendChild(button);
+    });
+  }
+
+  function addMessage(role, content) {
+    const welcome = document.getElementById("welcome");
+    if (welcome) welcome.remove();
+
+    const bubble = document.createElement("div");
+    bubble.className = "message " + (role === "user" ? "user" : "assistant");
+
+    const name = document.createElement("div");
+    name.className = "message-name";
+    name.textContent = role === "user" ? "YOU" : "PRINCE AI";
+
+    const body = document.createElement("div");
+    body.textContent = content;
+
+    bubble.appendChild(name);
+    bubble.appendChild(body);
+    chat.appendChild(bubble);
+    chat.scrollTop = chat.scrollHeight;
+    return body;
+  }
+
+  function startNewChat() {
+    if (busy) return;
+    messages = [];
+    activeChatId = null;
+    chat.innerHTML = `
+      <div class="welcome" id="welcome">
+        <h1>👋 Hello, Prince!</h1>
+        <p>What would you like to learn or ask today?</p>
+      </div>`;
+    statusText.textContent = "New chat";
+  }
+
+  function saveCurrentChat() {
+    if (!messages.length) return;
+
+    if (!activeChatId) {
+      activeChatId = Date.now().toString();
+      chatHistory.unshift({
+        id: activeChatId,
+        title: messages[0].content.slice(0, 42),
+        messages: [...messages]
+      });
+    } else {
+      const existing = chatHistory.find(item => item.id === activeChatId);
+      if (existing) {
+        existing.messages = [...messages];
+      } else {
+        chatHistory.unshift({
+          id: activeChatId,
+          title: messages[0].content.slice(0, 42),
+          messages: [...messages]
+        });
+      }
+    }
+
+    chatHistory = chatHistory.slice(0, 15);
+    saveHistory();
+    renderHistory();
+  }
+
+  function loadChat(id) {
+    if (busy) return;
+    const selected = chatHistory.find(item => item.id === id);
+    if (!selected) return;
+
+    activeChatId = id;
+    messages = [...selected.messages];
+    chat.innerHTML = "";
+
+    messages.forEach(message => {
+      addMessage(message.role, message.content);
+    });
+    statusText.textContent = "Chat loaded";
+  }
+
+  async function sendMessage() {
+    const text = promptInput.value.trim();
+    const apiKey = apiKeyInput.value.trim();
+    const model = modelSelect.value;
+
+    if (busy) return;
+    if (!text) return;
+
+    if (!apiKey) {
+      alert("Please enter your Groq API key first.");
+      apiKeyInput.focus();
+      return;
+    }
+
+    if (!apiKey.startsWith("gsk_")) {
+      alert("Please check your Groq API key. It usually starts with gsk_.");
+      return;
+    }
+
+    promptInput.value = "";
+    promptInput.style.height = "auto";
+
+    messages.push({ role: "user", content: text });
+    addMessage("user", text);
+
+    const replyBody = addMessage("assistant", "Thinking...");
+    replyBody.className = "typing";
+
+    busy = true;
+    sendBtn.disabled = true;
+    statusText.textContent = "Connecting to Groq...";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: "system",
+              content: "You are Prince AI, a helpful, friendly assistant. Explain things clearly and simply. Help with school studies, coding, science, cricket and general knowledge. When suitable, use simple language."
+            },
+            ...messages
+          ],
+          temperature: 0.7,
+          max_tokens: 2048
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMessage = data?.error?.message || "API request failed.";
+        throw new Error(errorMessage + " (HTTP " + response.status + ")");
+      }
+
+      const answer = data?.choices?.[0]?.message?.content;
+      if (!answer) throw new Error("The API returned an empty response.");
+
+      replyBody.className = "";
+      replyBody.textContent = answer;
+
+      messages.push({ role: "assistant", content: answer });
+      saveCurrentChat();
+      statusText.textContent = "Connected · " + model;
+    } catch (error) {
+      replyBody.className = "";
+      replyBody.textContent = "Error: " + error.message +
+        "\n\nCheck your API key, model availability, internet connection, and Groq account limits.";
+      statusText.textContent = "Something went wrong";
+    } finally {
+      busy = false;
+      sendBtn.disabled = false;
+      promptInput.focus();
+      chat.scrollTop = chat.scrollHeight;
+    }
+  }
+
+  document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+    const key = apiKeyInput.value.trim();
+
+    try {
+      if (saveKeyCheckbox.checked && key) {
+        localStorage.setItem("prince_groq_key", key);
+      } else {
+        localStorage.removeItem("prince_groq_key");
+      }
+      localStorage.setItem("prince_model", modelSelect.value);
+      statusText.textContent = "Settings saved on this device";
+      alert("Settings saved!");
+    } catch (error) {
+      alert("Could not save settings in this browser.");
+    }
+  });
+
+  document.getElementById("showKeyBtn").addEventListener("click", () => {
+    apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
+  });
+
+  document.getElementById("newChatBtn").addEventListener("click", startNewChat);
+  document.getElementById("clearHistoryBtn").addEventListener("click", () => {
+    if (!confirm("Delete all saved chat history?")) return;
+    chatHistory = [];
+    activeChatId = null;
+    saveHistory();
+    renderHistory();
+    startNewChat();
+  });
+
+  sendBtn.addEventListener("click", sendMessage);
+
+  promptInput.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+
+  promptInput.addEventListener("input", () => {
+    promptInput.style.height = "auto";
+    promptInput.style.height = Math.min(promptInput.scrollHeight, 150) + "px";
+  });
+
+  modelSelect.addEventListener("change", () => {
+    try {
+      localStorage.setItem("prince_model", modelSelect.value);
+    } catch (error) {}
+  });
+
+  renderHistory();
+</script>
+</body>
+</html>
